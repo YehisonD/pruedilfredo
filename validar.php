@@ -1,26 +1,26 @@
 <?php
+// validar.php
+session_start();
 include('conexion.php');
 
-$usuario_ingresado = $_POST['usuario'];
-$clave_ingresada   = $_POST['clave'];
+$usuario = $_POST['usuario'];
+$password = $_POST['password'];
 
-// Consulta para buscar al usuario
-$consulta = "SELECT * FROM usuarios WHERE nombre_usuario = '$usuario_ingresado'";
-$resultado = mysqli_query($conexion, $consulta);
+// Consulta preparada para evitar ataques
+$sql = "SELECT * FROM usuarios WHERE nombre_usuario = :user AND password = :pass";
+$stmt = $conexion->prepare($sql);
+$stmt->bindParam(':user', $usuario);
+$stmt->bindParam(':pass', $password);
+$stmt->execute();
 
-if (mysqli_num_rows($resultado) > 0) {
-    $fila = mysqli_fetch_assoc($resultado);
-    
-    // Verificamos la contraseña encriptada
-    if (password_verify($clave_ingresada, $fila['clave'])) {
-        echo "¡Inicio de sesión exitoso! Bienvenido " . $fila['nombre_usuario'];
-    } else {
-        echo "Contraseña incorrecta.";
-    }
+$usuario_encontrado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($usuario_encontrado) {
+    // Si es correcto, guardamos la sesión y vamos al dashboard
+    $_SESSION['usuario'] = $usuario_encontrado['nombre_usuario'];
+    header("Location: dashboard.php");
 } else {
-    echo "El usuario no existe.";
+    // Si es incorrecto, volvemos al login con un error
+    echo "<script>alert('Datos incorrectos'); window.location='index.php';</script>";
 }
-
-mysqli_free_result($resultado);
-mysqli_close($conexion);
 ?>

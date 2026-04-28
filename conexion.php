@@ -1,14 +1,16 @@
 <?php
-// Usamos getenv para leer las variables que configuraremos en el panel de Render
-$servidor   = getenv('DB_HOST');
-$usuario    = getenv('DB_USER');
-$clave      = getenv('DB_PASS');
-$base_datos = getenv('DB_NAME');
-$puerto     = getenv('DB_PORT');
+// conexion.php
+$host = getenv('DB_HOST');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASS');
+$db   = getenv('DB_NAME');
+$port = getenv('DB_PORT');
 
-$conexion = mysqli_connect($servidor, $usuario, $clave, $base_datos, $puerto);
-
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
+try {
+    // Usamos PDO para mayor seguridad contra inyecciones SQL
+    $conexion = new PDO("mysql:host=$host;port=$port;dbname=$db;charset=utf8", $user, $pass);
+    $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
 ?>
