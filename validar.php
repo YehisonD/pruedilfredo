@@ -6,21 +6,25 @@ include('conexion.php');
 $usuario = $_POST['usuario'];
 $password = $_POST['password'];
 
-// Consulta preparada para evitar ataques
-$sql = "SELECT * FROM usuarios WHERE nombre_usuario = :user AND password = :pass";
-$stmt = $conexion->prepare($sql);
-$stmt->bindParam(':user', $usuario);
-$stmt->bindParam(':pass', $password);
-$stmt->execute();
+try {
+    // CAMBIO CLAVE: Hemos cambiado 'password' por 'clave' para que coincida con tu Railway
+    $sql = "SELECT * FROM usuarios WHERE nombre_usuario = :user AND clave = :pass";
+    
+    $stmt = $conexion->prepare($sql);
+    $stmt->bindParam(':user', $usuario);
+    $stmt->bindParam(':pass', $password);
+    $stmt->execute();
 
-$usuario_encontrado = $stmt->fetch(PDO::FETCH_ASSOC);
+    $usuario_encontrado = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($usuario_encontrado) {
-    // Si es correcto, guardamos la sesión y vamos al dashboard
-    $_SESSION['usuario'] = $usuario_encontrado['nombre_usuario'];
-    header("Location: dashboard.php");
-} else {
-    // Si es incorrecto, volvemos al login con un error
-    echo "<script>alert('Datos incorrectos'); window.location='index.php';</script>";
+    if ($usuario_encontrado) {
+        // Guardamos el nombre en la sesión y entramos
+        $_SESSION['usuario'] = $usuario_encontrado['nombre_usuario'];
+        header("Location: dashboard.php");
+    } else {
+        echo "<script>alert('Usuario o clave incorrectos'); window.location='index.php';</script>";
+    }
+} catch (PDOException $e) {
+    echo "Error en la consulta: " . $e->getMessage();
 }
 ?>
